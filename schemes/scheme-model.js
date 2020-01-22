@@ -20,14 +20,29 @@ function findById(schemeId) {
     .first();
 }
 
+// function findById(schemeId) {
+//   return db('schemes')
+//     .where({ id: schemeId})
+//     .then(scheme => {
+//       if (scheme) {
+//         return scheme[0];
+//       } else {
+//         return null;
+//       }
+//     })
+// }
+
 function findSteps(schemeId) {
-  return db('schemes')
-    .where({ id: schemeId})
+  return db('steps as st')
+    .join('schemes as s', 'st.scheme_id', 's.id')
+    .select('st.id', 's.scheme_name', 'st.step_number', 'st.instructions')
+    .where('st.scheme_id', schemeId)
+    .orderBy('st.step_number')
 }
 
-function add(scheme) {
+function add(newScheme) {
   return db('schemes')
-    .insert(scheme)
+    .insert(newScheme)
     .then(([id]) => {
       return findById(id);
     })
@@ -36,7 +51,10 @@ function add(scheme) {
 function update(changes, id) {
   return db('schemes')
     .where({ id })
-    .update(changes);
+    .update(changes)
+    .then(scheme => {
+      return findById(id);
+    })
 }
 
 function remove(id) {
